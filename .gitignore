@@ -26,3 +26,4 @@ docker-compose.override.yml
 # Ignore the directory where the agents will generate their code.
 # This keeps the generated applications separate from the MAS framework itself.
 /workspace/
+.venv/
