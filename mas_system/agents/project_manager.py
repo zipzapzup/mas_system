@@ -1,9 +1,8 @@
 import json
 from mas_system.shared.llm_interface import call_gemini
 from mas_system.prompts import PROJECT_MANAGER_PROMPT, PROJECT_NAME_GENERATOR_PROMPT
-from mas_system.tasks import run_coder
+from mas_system.tasks import app as celery_app
 from celery import chain
-from mas_system.tasks import run_qa_engineer
 
 class ProjectManagerAgent:
     def __init__(self):
@@ -38,8 +37,8 @@ class ProjectManagerAgent:
         for task in plan:
             # Create a chain of tasks: coder -> qa
             task_chain = chain(
-                run_coder.s(task, project_name).set(queue='coder_queue'),
-                run_qa_engineer.s().set(queue='qa_queue')
+                celery_app.signature('mas_system.tasks.run_coder', args=[task, project_name], queue='coder_queue'),
+                celery_app.signature('mas_system.tasks.run_qa_engineer', queue='qa_queue')
             )
             task_chain.apply_async()
             

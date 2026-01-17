@@ -57,25 +57,19 @@ docker compose up --build -d
 ```
 This command builds the Docker images and starts all services in detached mode.
 
-### b. Activate the Virtual Environment
+### b. Run an Objective
 
-Before running the main script, you must activate the local Python virtual environment:
+To give the MAS an objective, use the `run.sh` script from the root of the project. This script automatically handles activating the virtual environment and setting the necessary environment variables.
 
-```bash
-source .venv/bin/activate
-```
-
-### c. Run an Objective
-
-Now you can give the MAS an objective by running the `main.py` script. The script must be run as a module from the project's root directory, and you need to set the `REDIS_HOST` environment variable.
+Simply pass your objective as a string to the script:
 
 ```bash
-REDIS_HOST=localhost python3 -m mas_system.main "Your high-level objective here"
+./run.sh "Your high-level objective here"
 ```
 
 **Example:**
 ```bash
-REDIS_HOST=localhost python3 -m mas_system.main "Create a simple Flask application with a single endpoint that returns 'Hello, World!'"
+./run.sh "Create a simple Flask application with a single endpoint that returns 'Hello, World!'"
 ```
 
 ## 3. Observing the System
