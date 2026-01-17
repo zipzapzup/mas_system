@@ -1,0 +1,14 @@
+# Agent Communication & Task Queues
+celery==5.3.6
+redis==5.0.1
+
+# State & Memory Database
+pymongo==4.6.1
+
+# LLM Interface
+google-generativeai==0.4.0
+python-dotenv==1.0.0
+
+# Monitoring UI Backend (for later use)
+fastapi==0.109.0
+uvicorn==0.27.0

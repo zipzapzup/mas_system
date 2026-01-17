@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  # Message Bus for agent communication
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # State and Memory database
+  mongo:
+    image: "mongo:latest"
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Base service for our Python agents
+  # We will extend this for each agent
+  agent_base: &agent_base
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - ./mas_system:/app/mas_system
+      - ./workspace:/app/workspace # The shared workspace for generated projects
+    depends_on:
+      - redis
+      - mongo
+    command: ["echo", "This is the base agent service. It should be extended."]
+
+  # The Project Manager Agent
+  project_manager:
+    <<: *agent_base
+    command: ["celery", "-A", "mas_system.tasks", "worker", "--loglevel=info", "-Q", "project_manager_queue"]
+
+  # A generalist Coder Agent (to be specialized later)
+  coder_agent:
+    <<: *agent_base
+    command: ["celery", "-A", "mas_system.tasks", "worker", "--loglevel=info", "-Q", "coder_queue"]
+  
+  # Monitoring UI (Phase 4, defined for context)
+  # monitor_ui:
+  #   build: ./monitor_ui # A separate React/Flask app would be here
+  #   ports:
+  #     - "8080:80"
+  #   depends_on:
+  #     - redis
+  #     - mongo
+
+volumes:
+  redis_data:
+  mongo_data:
