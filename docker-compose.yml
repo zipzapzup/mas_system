@@ -42,15 +42,25 @@ services:
   coder_agent:
     <<: *agent_base
     command: ["celery", "-A", "mas_system.tasks", "worker", "--loglevel=info", "-Q", "coder_queue"]
-  
-  # Monitoring UI (Phase 4, defined for context)
-  # monitor_ui:
-  #   build: ./monitor_ui # A separate React/Flask app would be here
-  #   ports:
-  #     - "8080:80"
-  #   depends_on:
-  #     - redis
-  #     - mongo
+
+  # The QA Engineer Agent
+  qa_agent:
+    <<: *agent_base
+    command: ["celery", "-A", "mas_system.tasks", "worker", "--loglevel=info", "-Q", "qa_queue"]
+
+
+  # Web UI for observing the MAS
+  web_ui:
+    build: ./web_ui
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app/workspace
+    depends_on:
+      - redis
+      - mongo
 
 volumes:
   redis_data:
