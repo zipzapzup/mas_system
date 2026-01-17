@@ -47,31 +47,19 @@ def call_gemini(system_prompt: str, user_prompt: str) -> str:
     # --- THIS IS THE CORE LLM LOGIC ---
     # You would uncomment and complete this section.
     # -----------------------------------
-    # model = genai.GenerativeModel('gemini-pro') # Or other suitable model
-    #
-    # # The Gemini API uses a different format than system/user prompts.
-    # # We combine them into a single list of messages.
-    # full_prompt = [
-    #     {'role': 'user', 'parts': [system_prompt, user_prompt]}
-    # ]
-    #
-    # try:
-    #     response = model.generate_content(full_prompt)
-    #     print("--- Gemini Response Received ---")
-    #     return response.text
-    # except Exception as e:
-    #     print(f"An error occurred while calling the Gemini API: {e}")
-    #     return f"Error: Could not get response from Gemini. Details: {e}"
+    model = genai.GenerativeModel('gemini-pro') # Or other suitable model
+    
+    # The Gemini API uses a different format than system/user prompts.
+    # We combine them into a single list of messages.
+    full_prompt = [
+        {'role': 'user', 'parts': [system_prompt, user_prompt]}
+    ]
+    
+    try:
+        response = model.generate_content(full_prompt)
+        print("--- Gemini Response Received ---")
+        return response.text
+    except Exception as e:
+        print(f"An error occurred while calling the Gemini API: {e}")
+        return f"Error: Could not get response from Gemini. Details: {e}"
     # -----------------------------------
-
-    # --- RETURNING A PLACEHOLDER FOR NOW ---
-    # Replace this with the actual implementation above.
-    print("--- Returning Placeholder (LLM not called) ---")
-    placeholder_response = f"""
-    {{
-        "explanation": "This is a placeholder response because the actual Gemini API was not called.",
-        "file_path": "src/components/HelloWorld.tsx",
-        "code": "import React from 'react';\n\nconst HelloWorld = () => <h1>Hello, World!</h1>;\n\nexport default HelloWorld;"
-    }}
-    """
-    return placeholder_response

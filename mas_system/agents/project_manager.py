@@ -1,44 +1,42 @@
-from .database_agent import DatabaseAgent
-from .backend_agent import BackendAgent
-from .frontend_agent import FrontendAgent
+import json
+from mas_system.shared.llm_interface import call_gemini
+from mas_system.prompts import PROJECT_MANAGER_PROMPT
+from mas_system.tasks import run_coder
 
 class ProjectManagerAgent:
     def __init__(self):
-        # In a real system, these might be initialized on demand
-        self.database_agent = DatabaseAgent()
-        self.backend_agent = BackendAgent()
-        self.frontend_agent = FrontendAgent()
+        # The constructor is now simpler, as agents are decoupled.
+        pass
 
-    def execute_task(self, objective):
-        print(f"Project Manager: Received objective - '{objective}'")
-        
-        # 1. Simulate planning phase
-        print("\nProject Manager: Analyzing objective and creating a plan...")
-        plan = [
-            "1. Design database schema for users and articles.",
-            "2. Create backend API endpoints for user authentication and article CRUD.",
-            "3. Build frontend components for displaying articles and user login."
-        ]
-        print("Project Manager: Plan created.")
-        for step in plan:
-            print(f"- {step}")
+    def execute_task(self, objective: str):
+        """
+        Orchestrates the completion of a high-level objective.
+        1. Calls an LLM to generate a plan.
+        2. Dispatches each step of the plan to the coder queue.
+        """
+        print(f"--- Project Manager received objective: '{objective}' ---")
 
-        # 2. Simulate delegation to specialized agents
-        print("\nProject Manager: Delegating tasks to specialized agents...")
+        # 1. Call the LLM to generate a plan
+        print("...Calling LLM to generate a project plan...")
+        prompt_for_pm = f"The user's objective is: '{objective}'"
+        response_text = call_gemini(system_prompt=PROJECT_MANAGER_PROMPT, user_prompt=prompt_for_pm)
 
-        # Delegate to DatabaseAgent
-        schema_task = "A schema for 'users' (email, password) and 'articles' (title, content, author_id)"
-        sql_schema = self.database_agent.design_schema(schema_task)
-        print(f"Project Manager: Received artifact from Database Agent: \n---\n{sql_schema}\n---\n")
+        # 2. Parse the plan from the LLM's JSON response
+        try:
+            response_json = json.loads(response_text)
+            plan = response_json['plan']
+            print(f"+++ Plan generated successfully with {len(plan)} steps +++")
+        except (json.JSONDecodeError, KeyError) as e:
+            print(f"!!! Project Manager Error: Could not parse LLM response or 'plan' key is missing. Error: {e} !!!")
+            print(f"LLM Response was:\n{response_text}")
+            return # Stop execution if the plan is invalid
 
-        # Delegate to BackendAgent
-        endpoint_task = "CRUD endpoints for /api/articles"
-        api_code = self.backend_agent.create_endpoint(endpoint_task)
-        print(f"Project Manager: Received artifact from Backend Agent: \n---\n{api_code}\n---\n")
+        # 3. Dispatch tasks to the coder queue
+        print("...Dispatching tasks to Coder Agents...")
+        for i, task in enumerate(plan):
+            print(f"Dispatching task {i+1}/{len(plan)}: {task}")
+            # This sends the task to the 'coder_queue' for a Coder Agent to pick up
+            run_coder.apply_async(args=[task], queue='coder_queue')
 
-        # Delegate to FrontendAgent
-        component_task = "A React component to display a list of articles"
-        component_code = self.frontend_agent.create_component(component_task)
-        print(f"Project Manager: Received artifact from Frontend Agent: \n---\n{component_code}\n---\n")
-
-        print("\nProject Manager: All tasks completed. Project build is finished.")
+        print("--- All tasks dispatched. Project Manager's job is complete. ---")
+        print("--- Coder Agents are now working on the tasks. ---")
